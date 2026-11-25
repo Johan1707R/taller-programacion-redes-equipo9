@@ -1,0 +1,72 @@
+{
+  "info": {
+    "_postman_id": "a2c457cb-fc8c-4bc7-a3dd-9daaae660009",
+    "name": "CIAF - Consulta de envíos (Equipo 9)",
+    "description": "Peticiones del taller. Inicia primero el servidor Node/Express. Variables: baseUrl=http://localhost:3000 y teamN=9.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "teamN", "value": "9" }
+  ],
+  "item": [
+    {
+      "name": "01 - GET envíos válido (200)",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "X-Red-Equipo", "value": "CIAF-{{teamN}}", "type": "text" }
+        ],
+        "url": { "raw": "{{baseUrl}}/api/envios" }
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+        "pm.test('Devuelve el encabezado de procesamiento del equipo', function () { pm.expect(pm.response.headers.get('X-Servidor-Procesado')).to.eql('Equipo-' + pm.collectionVariables.get('teamN')); });"
+      ] } }]
+    },
+    {
+      "name": "02 - POST registrar envío válido (201)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json", "type": "text" },
+          { "key": "X-Red-Equipo", "value": "CIAF-{{teamN}}", "type": "text" }
+        ],
+        "body": { "mode": "raw", "raw": "{\n  \"destinatario\": \"Camila Torres\",\n  \"ciudad\": \"Armenia\"\n}", "options": { "raw": { "language": "json" } } },
+        "url": { "raw": "{{baseUrl}}/api/envios" }
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Responde 201', function () { pm.response.to.have.status(201); });",
+        "pm.test('Incluye el encabezado del equipo', function () { pm.expect(pm.response.headers.get('X-Servidor-Procesado')).to.eql('Equipo-' + pm.collectionVariables.get('teamN')); });"
+      ] } }]
+    },
+    {
+      "name": "03 - GET sin credencial (401 esperado)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{baseUrl}}/api/envios" }
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Bloquea con 401', function () { pm.response.to.have.status(401); });",
+        "pm.test('Explica el encabezado requerido', function () { pm.expect(pm.response.json().encabezadoRequerido).to.eql('X-Red-Equipo'); });"
+      ] } }]
+    },
+    {
+      "name": "04 - Verificar encabezados de respuesta (200)",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "X-Red-Equipo", "value": "CIAF-{{teamN}}", "type": "text" },
+          { "key": "Origin", "value": "http://localhost:5500", "type": "text" }
+        ],
+        "url": { "raw": "{{baseUrl}}/api/envios" }
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Responde 200', function () { pm.response.to.have.status(200); });",
+        "pm.test('CORS permite el origen configurado', function () { pm.expect(pm.response.headers.get('Access-Control-Allow-Origin')).to.eql('http://localhost:5500'); });",
+        "pm.test('Incluye X-Servidor-Procesado: Equipo-9', function () { pm.expect(pm.response.headers.get('X-Servidor-Procesado')).to.eql('Equipo-' + pm.collectionVariables.get('teamN')); });"
+      ] } }]
+    }
+  ]
+}
